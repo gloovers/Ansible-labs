@@ -21,10 +21,3 @@
     warn: false
   listen: "test_health"
 
-- name: Check if it's httpd
-  shell: |
-    - curl -sIL localhost | grep "^Server: Apache"
-  args:
-    warn: false
-  listen: "test_health"
-

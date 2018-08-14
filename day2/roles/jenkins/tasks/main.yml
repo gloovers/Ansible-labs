@@ -63,6 +63,22 @@
     - "restart"
     - "test_health"
 
+- name: create dir init.groovy.d
+  file:
+    path: "{{ jenkins_home }}/init.groovy.d"
+    state: directory
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_group }}"
+  become: yes
+
+- name: copy groovy script
+  copy:
+    src: "files/basic-security.groovy"
+    dest: "{{ jenkins_home }}/init.groovy.d/basic-security.groovy"
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_group }}"
+  become: yes
+ 
 - name: Service is enable
   systemd:
     name: jenkins
@@ -71,6 +87,11 @@
   become: yes
   notify:
     - "test_health"
+  
+- name: Wait until the file is present
+  wait_for:
+    path: "{{ jenkins_home }}/config.xml"  
+  become: yes
 
 - name: Get facts about jenkins version
   shell: "head -5  {{ jenkins_home }}/config.xml| grep -oP '(?<=<version>).*?(?=</version>)'"
