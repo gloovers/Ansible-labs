@@ -19,7 +19,7 @@
   copy:
     content: >
         {
-          "packages":"{{ yum_reg.results }}",
-        {
+          "packages": "{{ yum_reg.results }}"
+        }
     dest: "/etc/ansible/facts.d/installed_packages.fact"
   become: yes

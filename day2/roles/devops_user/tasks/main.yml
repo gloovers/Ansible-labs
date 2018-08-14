@@ -47,11 +47,11 @@
   copy:
     content: >
         {
-          "group_name":"{{ group_reg.name }}",
-          "group_id":"{{ group_reg.gid }}",
-          "user_name":"{{ user_reg.name }}",
-          "user_id":"{{ user_reg.uid }}",
-          "user_home":"{{ user_reg.home }}"
-        {
+          "group_name": "{{ group_reg.name }}",
+          "group_id": "{{ group_reg.gid }}",
+          "user_name": "{{ user_reg.name }}",
+          "user_id": "{{ user_reg.uid }}",
+          "user_home": "{{ user_reg.home }}"
+        }
     dest: "/etc/ansible/facts.d/devops_user.fact"
   become: yes

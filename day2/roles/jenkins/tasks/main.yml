@@ -88,14 +88,14 @@
   copy:
     content: >
         {
-          "jenkins_user":"{{ jenkins_user_reg.name }}",
-          "jenkins_group":"{{ jenkins_group_reg.name }}",
-          "jenkins_uid":"{{ jenkins_user_reg.uid }}",
-          "jenkins_gid":"{{ jenkins_group_reg.gid }}",
-          "jenkins_war_path":"{{ jenkins_war_reg.dest }}",
-          "jenkins_version":"{{ jenkins_ver_reg.stdout }}",
-          "jenkins_service":"{{ jenkins_serv_reg.stdout }}" 
-        {
+          "jenkins_user": "{{ jenkins_user_reg.name }}",
+          "jenkins_group": "{{ jenkins_group_reg.name }}",
+          "jenkins_uid": "{{ jenkins_user_reg.uid }}",
+          "jenkins_gid": "{{ jenkins_group_reg.gid }}",
+          "jenkins_war_path": "{{ jenkins_war_reg.dest }}",
+          "jenkins_version": "{{ jenkins_ver_reg.stdout }}",
+          "jenkins_service": "{{ jenkins_serv_reg.stdout }}" 
+        }
     dest: "/etc/ansible/facts.d/jenkins.fact"
   become: yes
 

@@ -53,16 +53,18 @@
   register: httpd_dt_reg
   become: yes
   changed_when: False 
-
+  args:
+    warn: False
+ 
 - name: Save facts about httpd
   copy:
     content: >
         {
-          "httpd_package":"{{ installed_packages_reg.results }}",
-          "httpd_date_installation":"{{ httpd_dt_reg.stdout }}",
-          "httpd_version":"{{ httpd_ver_reg.stdout }}",
-          "httpd_service":"{{ httpd_serv_reg.stdout }}"
-        {
+          "httpd_package": "{{ installed_packages_reg.results }}",
+          "httpd_date_installation": "{{ httpd_dt_reg.stdout }}",
+          "httpd_version": "{{ httpd_ver_reg.stdout }}",
+          "httpd_service": "{{ httpd_serv_reg.stdout }}"
+        }
     dest: "/etc/ansible/facts.d/httpd.fact"
   become: yes
    

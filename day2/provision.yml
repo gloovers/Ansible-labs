@@ -1,5 +1,5 @@
 ###
-- name: local action 
+- name: local actions 
   hosts: localhost
   vars:
     ssh_key_path: "{{ user_key }}.pem"
@@ -49,6 +49,19 @@
     - debug: msg="will work after roles"
   post_tasks:
     - debug: msg="will work at the end"
+
+- name: Details
+  hosts: 
+    - appserver
+    - webserver
+  tasks:
+    - name: reload local facts
+      setup:
+        filter: ansible_local      
+    - name: debug
+      debug: var=ansible_local 
+
+
 
 
 
