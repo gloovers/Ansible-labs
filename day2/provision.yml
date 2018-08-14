@@ -1,5 +1,5 @@
 ###
-- name: Create ssh key
+- name: local action 
   hosts: localhost
   vars:
     ssh_key_path: "{{ user_key }}.pem"
@@ -10,6 +10,12 @@
     command: "ssh-keygen -t rsa -f {{ ssh_key_path }} -N"
     args:
       creates: "{{ ssh_key_path }}"
+  - name: Ensure Ansible Facts Dir Exists
+    file:
+      path: /etc/ansible/facts.d
+      state: directory
+      recurse: yes
+    become: yes
 
 ###
 - name: Create devops user
@@ -43,4 +49,6 @@
     - debug: msg="will work after roles"
   post_tasks:
     - debug: msg="will work at the end"
+
+
 

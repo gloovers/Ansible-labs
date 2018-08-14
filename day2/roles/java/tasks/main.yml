@@ -1,20 +1,38 @@
 ---
 # tasks file for java
 #
-- name: Install java
-  yum:
-    name: "java-{{ jdk_major_version }}-openjdk"
-    state: present
-  become: yes
-
-- name: Verifies java installation
-  shell: "java -version 2>&1 | grep {{ jdk_major_version }}"
-  register: java_version_info
-  changed_when: False 
-
 - name: Ensure Facts Directory Exists
   file:
     path: /etc/ansible/facts.d
     recurse: yes
     state: directory
   become: yes
+
+- name: Install java
+  yum:
+    name: "java-{{ jdk_major_version }}-openjdk"
+    state: present
+  become: yes
+  register: inst_java_reg
+
+- name: Verifies java installation
+  shell: "java -version 2>&1 | grep {{ jdk_major_version }}"
+  register: java_version_info
+  changed_when: False 
+
+- name: get date-time of installation
+  shell: "rpm -qa --queryformat '%{installtime:date} %{name}\n' java-{{ jdk_major_version }}-openjdk | sed 's/java-{{ jdk_major_version }}-openjdk//'"
+  register: java_dt_reg
+  changed_when: False
+  args: warn=False
+  
+- name: Save facts about java
+  copy:
+    content: >
+        {
+          "java_RE":"{{ java_version_info.stdout_lines[1] }}",
+          "java_date_installation":"{{ java_dt_reg.stdout }}"
+        {
+    dest: "/etc/ansible/facts.d/java.fact"
+  become: yes
+

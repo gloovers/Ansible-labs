@@ -1,13 +1,25 @@
 ---
 # tasks file for common
+- name: Ensure Facts Directory Exists
+  file:
+    path: /etc/ansible/facts.d
+    recurse: yes
+    state: directory
+  become: yes
+
 
 - name: Install necessary Packages
   yum:
     name: "{{ packages }}"
     state: present
   become: yes
-  
-- name: Esure Ansible Facts Dir exists
-  file: path=/etc/ansible/facts.d state=directory recurse=yes
-  become: yes
+  register: yum_reg
 
+- name: Save facts about install packages
+  copy:
+    content: >
+        {
+          "packages":"{{ yum_reg.results }}",
+        {
+    dest: "/etc/ansible/facts.d/installed_packages.fact"
+  become: yes
