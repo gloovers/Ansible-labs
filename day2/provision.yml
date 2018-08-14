@@ -1,0 +1,46 @@
+###
+- name: Create ssh key
+  hosts: localhost
+  vars:
+    ssh_key_path: "{{ user_key }}.pem"
+    user_key: devops
+
+  tasks:
+  - name: Create ssh key for user
+    command: "ssh-keygen -t rsa -f {{ ssh_key_path }} -N"
+    args:
+      creates: "{{ ssh_key_path }}"
+
+###
+- name: Create devops user
+  hosts:
+    - appserver
+    - webserver
+  roles:
+    - devops_user
+
+###
+- name: Install Jenkins
+  hosts:
+    - appserver
+  pre_tasks:
+    - debug: msg="will work first" 
+  roles:
+    - jenkins 
+  tasks:
+    - debug: msg="will work after roles" 
+  post_tasks:
+    - debug: msg="will work at the end"
+###
+- name: Install httpd
+  hosts:
+    - webserver
+  pre_tasks:
+    - debug: msg="will work first"
+  roles:
+    - { role: httpd, app_ip: "{{ hostvars[groups['appserver'][0]]['ansible_host'] }}" }
+  tasks:
+    - debug: msg="will work after roles"
+  post_tasks:
+    - debug: msg="will work at the end"
+

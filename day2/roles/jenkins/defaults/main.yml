@@ -1,0 +1,11 @@
+---
+# defaults file for jenkins
+jenkins_home: /var/jenkins
+jenkins_user: jenkins
+jenkins_war_path: /opt
+jenkins_group: jenkins
+jenkins_uid: 1500
+jenkins_guid: 1500
+jenkins_version: latest
+jenkins_opts: ""
+

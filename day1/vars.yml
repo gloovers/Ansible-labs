@@ -1,0 +1,6 @@
+package_java: java-1.8.0-openjdk
+jenkins_url: jenkins.war
+jenkins_home: /var/jenkins
+jenkins_user: jenkins
+package_httpd: httpd
+jenkins_war_path: /opt

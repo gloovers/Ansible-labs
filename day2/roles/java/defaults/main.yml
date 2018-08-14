@@ -1,0 +1,4 @@
+---
+# defaults file for java
+jdk_major_version: 1.8.0
+

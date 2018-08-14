@@ -1,0 +1,43 @@
+####
+- name: Create ssh key
+  hosts: localhost
+  vars:
+    ssh_key_path: devops.pem
+    user: devops
+  
+  tasks:
+  - name: Create ssh key for user
+    command: ssh-keygen -t rsa -f devops.pem -N 
+    args:
+      creates: devops.pem
+###
+- name: Bootstrap Maintenance user 
+  hosts: webserver appserver
+  vars:
+    user: devops
+    ssh_key_pub_path: devops.pem.pub
+    ansible_user: vagrant
+    ansible_ssh_pass: vagrant
+  tasks:
+  - name: Create user
+    user:
+      name: "{{ user }}"
+    become: true
+    become_user: root
+  - name: Configure ssh access
+    authorized_key:
+      user: "{{ user }}"
+      state: present
+      key: '{{ item }}'
+    with_file:
+    - "{{ ssh_key_pub_path }}"
+    become: true
+    become_user: root
+  - name: Grant all necessary system's privileges
+    template: 
+      src: sudoers.j2
+      dest: "/etc/sudoers.d/{{ user }}"
+      validate: 'visudo -cf %s'
+      mode: 0440
+    become: true
+    become_user: root 

@@ -1,0 +1,35 @@
+---
+# tasks file for devops_user
+- name: Create group
+  group:
+    name: "{{ user_group}}"
+    state: present
+  become: true
+  become_user: root
+
+- name: Create user
+  user:
+    name: "{{ user_name }}"
+    group: "{{ user_group}}"
+  become: true
+  become_user: root
+
+- name: Configure ssh access
+  authorized_key:
+    user: "{{ user_name }}"
+    state: present
+    key: '{{ item }}'
+  with_file:
+  - "{{ ssh_key_pub_path }}"
+  become: true
+  become_user: root
+
+- name: Grant all necessary system's privileges
+  template:
+    src: sudoers.j2
+    dest: "/etc/sudoers.d/{{ user_name }}"
+    validate: 'visudo -cf %s'
+    mode: 0440
+  become: true
+  become_user: root
+

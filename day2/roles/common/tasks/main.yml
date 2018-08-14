@@ -1,0 +1,13 @@
+---
+# tasks file for common
+
+- name: Install necessary Packages
+  yum:
+    name: "{{ packages }}"
+    state: present
+  become: yes
+  
+- name: Esure Ansible Facts Dir exists
+  file: path=/etc/ansible/facts.d state=directory recurse=yes
+  become: yes
+

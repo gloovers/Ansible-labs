@@ -1,0 +1,5 @@
+---
+# defaults file for devops_user
+user_name: devops
+user_group: devops
+ssh_key_pub_path: devops.pem.pub

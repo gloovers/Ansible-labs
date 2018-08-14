@@ -1,0 +1,28 @@
+---
+# tasks file for httpd
+- name: Install httpd
+  yum:
+    name: "{{ package_httpd }}"
+    state: latest
+  notify:
+    - "restart"
+    - "test_health"
+  become: yes
+  
+- name: configure httpd
+  template:
+    src: jenkins.conf.j2
+    dest: /etc/httpd/conf.d/jenkins.conf
+  notify:
+    - "restart"
+    - "test_health"
+  become: yes
+ 
+- name: httpd enable
+  systemd:
+    name: httpd
+    enabled: yes
+    state: started
+  become: yes
+  notify:
+    - "test_health"   
