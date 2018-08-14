@@ -10,12 +10,6 @@
     command: "ssh-keygen -t rsa -f {{ ssh_key_path }} -N"
     args:
       creates: "{{ ssh_key_path }}"
-  - name: Ensure Ansible Facts Dir Exists
-    file:
-      path: /etc/ansible/facts.d
-      state: directory
-      recurse: yes
-    become: yes
 
 ###
 - name: Create devops user
@@ -30,25 +24,27 @@
   hosts:
     - appserver
   pre_tasks:
-    - debug: msg="will work first" 
+    - debug: 
+        msg: "HOST: {{ inventory_hostname }} | {{ ansible_host }}"
   roles:
     - jenkins 
   tasks:
-    - debug: msg="will work after roles" 
+    - debug: msg="Task_phase" 
   post_tasks:
-    - debug: msg="will work at the end"
+    - debug: msg="Post_Task_phase"
 ###
 - name: Install httpd
   hosts:
     - webserver
   pre_tasks:
-    - debug: msg="will work first"
+    - debug:
+        msg: "HOST: {{ inventory_hostname }} | {{ ansible_host }}"
   roles:
     - { role: httpd, app_ip: "{{ hostvars[groups['appserver'][0]]['ansible_host'] }}" }
   tasks:
-    - debug: msg="will work after roles"
+    - debug: msg="Task_phase"
   post_tasks:
-    - debug: msg="will work at the end"
+    - debug: msg="Post_Task_phase"
 
 - name: Details
   hosts: 
@@ -60,8 +56,4 @@
         filter: ansible_local      
     - name: debug
       debug: var=ansible_local 
-
-
-
-
 
