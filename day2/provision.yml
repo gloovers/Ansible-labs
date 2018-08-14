@@ -50,6 +50,7 @@
   hosts: 
     - appserver
     - webserver
+  gather_facts: no
   tasks:
     - name: reload local facts
       setup:
