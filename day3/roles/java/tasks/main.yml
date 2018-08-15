@@ -1,0 +1,12 @@
+---
+# tasks file for java
+#
+- name: load local facts about server
+  setup:
+    filter: ansible_local
+
+- include_tasks: java_install.yml
+  when: (ansible_local.java is not defined) or 
+        (ansible_local.java.java_version != java_version)
+
+

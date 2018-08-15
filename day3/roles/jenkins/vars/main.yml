@@ -1,0 +1,3 @@
+---
+# vars file for jenkins
+jenkins_url: "http://mirrors.jenkins.io/war-stable/{{ jenkins_version }}/jenkins.war"

@@ -1,0 +1,154 @@
+---
+# tasks file for jenkins
+#
+- name: Ensure Facts Directory Exists
+  file:
+    path: /etc/ansible/facts.d
+    recurse: yes
+    state: directory
+  become: yes
+
+- name: Save state about jenkins process configuration
+  copy:
+    content: >
+        {
+          "state": "not_configured" 
+        }
+    dest: "/etc/ansible/facts.d/jenkins_configured.fact"
+  become: yes
+
+- name: Create user group jenkins
+  group:
+    name: "{{ jenkins_group }}"
+    state: present
+    gid: "{{ jenkins_guid }}"
+  become: yes
+  register: jenkins_group_reg
+
+- name: Create user jenkins
+  user:
+    name: "{{ jenkins_user }}"
+    home: "{{ jenkins_home }}"
+    group: "{{ jenkins_group }}"
+    uid: "{{ jenkins_uid }}"
+  become: yes
+  register: jenkins_user_reg
+
+- name: Get jenkins.war from local
+  copy:
+    src: jenkins.war
+    dest: "{{jenkins_war_path }}"
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_group }}"
+  become: yes
+  notify:
+    - "restart"
+  tags:
+    - never
+  register: jenkins_war_reg
+
+- name: Get jenkins.war
+  get_url:
+    url: "{{ jenkins_url }}"
+    dest: "{{jenkins_war_path }}"
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_group }}"
+  become: yes
+  notify:
+    - "restart"
+  tags:
+    - url
+  register: jenkins_war_reg
+  
+- name: Copy jenkins service
+  template:
+    src: jenkins.service.j2
+    dest: /etc/systemd/system/jenkins.service
+  become: yes
+  notify:
+    - systemd_daemon_reload
+    - "restart"
+
+- name: create dir init.groovy.d
+  file:
+    path: "{{ jenkins_home }}/init.groovy.d"
+    state: directory
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_group }}"
+  become: yes
+
+- name: copy groovy script
+  template:
+    src: basic-security.groovy.j2
+    dest: "{{ jenkins_home }}/init.groovy.d/basic-security.groovy"
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_group }}"
+  become: yes
+  notify:
+    - "restart"
+ 
+- name: Service is enable
+  systemd:
+    name: jenkins
+    enabled: yes
+    state: started
+  become: yes
+
+- name: Jenkins wait start port
+  wait_for:
+    host=localhost
+    port=8080
+    delay=30
+    timeout=60
+
+- name: Jenkins check running
+  shell: ps -eo cmd | grep -v grep | grep "jenkins"
+  args:
+    warn: false
+
+- name: Jenkins check respond code
+  shell: curl -sL -w "%{http_code}" localhost:8080/login?from=%2F -o /dev/null | grep 200
+  args:
+    warn: false
+  
+- name: Wait until the file is present
+  wait_for:
+    path: "{{ jenkins_home }}/config.xml"  
+  become: yes
+
+- name: Get facts about jenkins version
+  shell: "head -5  {{ jenkins_home }}/config.xml| grep -oP '(?<=<version>).*?(?=</version>)'"
+  become: yes
+  register: jenkins_ver_reg
+  changed_when: False
+
+- name: Get facts about jenkins service
+  shell: "systemctl status jenkins | grep 'Active:' | sed 's/Active: //'"
+  become: yes
+  register: jenkins_serv_reg
+  changed_when: False
+
+- name: Save facts about jenkins
+  copy:
+    content: >
+        {
+          "jenkins_user": "{{ jenkins_user_reg.name }}",
+          "jenkins_group": "{{ jenkins_group_reg.name }}",
+          "jenkins_uid": "{{ jenkins_user_reg.uid }}",
+          "jenkins_gid": "{{ jenkins_group_reg.gid }}",
+          "jenkins_war_path": "{{ jenkins_war_reg.dest }}",
+          "jenkins_version": "{{ jenkins_ver_reg.stdout }}",
+          "jenkins_service": "{{ jenkins_serv_reg.stdout }}" 
+        }
+    dest: "/etc/ansible/facts.d/jenkins.fact"
+  become: yes
+
+- name: Save state about jenkins process configuration at the end
+  copy:
+    content: >
+        {
+          "state": "configured"
+        }
+    dest: "/etc/ansible/facts.d/jenkins_configured.fact"
+  become: yes
+

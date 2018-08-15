@@ -1,0 +1,58 @@
+###
+- name: local actions 
+  hosts: localhost
+  vars:
+    ssh_key_path: "{{ user_key }}.pem"
+    user_key: devops
+
+  tasks:
+  - name: Create ssh key for user
+    command: "ssh-keygen -t rsa -f {{ ssh_key_path }} -N''"
+    args:
+      creates: "{{ ssh_key_path }}"
+
+###
+- name: Create devops user
+  hosts: all
+  roles:
+    - user
+
+###
+- name: Install Jenkins
+  hosts:
+    - appserver
+  pre_tasks:
+    - debug: 
+        msg: "HOST: {{ inventory_hostname }} | {{ ansible_host }}"
+  roles:
+    - jenkins 
+  tasks:
+    - debug: msg="Task_phase" 
+  post_tasks:
+    - debug: msg="Post_Task_phase"
+###
+- name: Install httpd
+  hosts:
+    - webserver
+  pre_tasks:
+    - debug:
+        msg: "HOST: {{ inventory_hostname }} | {{ ansible_host }}"
+  roles:
+    - { role: httpd, app_ip: "{{ hostvars[groups['appserver'][0]]['ansible_host'] }}" }
+  tasks:
+    - debug: msg="Task_phase"
+  post_tasks:
+    - debug: msg="Post_Task_phase"
+
+- name: Details
+  hosts: 
+    - appserver
+    - webserver
+  gather_facts: no
+  tasks:
+    - name: reload local facts
+      setup:
+        filter: ansible_local      
+    - name: debug
+      debug: var=ansible_local 
+

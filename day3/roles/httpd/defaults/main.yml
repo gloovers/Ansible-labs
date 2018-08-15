@@ -1,0 +1,5 @@
+---
+# defaults file for httpd
+
+package_httpd: httpd
+app_ip: 127.0.0.1
