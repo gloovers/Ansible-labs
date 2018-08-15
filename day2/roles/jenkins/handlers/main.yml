@@ -13,22 +13,3 @@
   become: yes
   listen: "restart"
 
-- name: Jenkins wait start
-  wait_for:
-    host=localhost
-    port=8080
-    delay=30
-    timeout=60
-  listen: "test_health"
- 
-- name: Jenkins check running
-  shell: ps -eo cmd | grep -v grep | grep "jenkins"
-  args:
-    warn: false
-  listen: "test_health"
-
-- name: Jenkins check respond code
-  shell: curl -sL -w "%{http_code}" localhost:8080/login?from=%2F -o /dev/null | grep 200
-  args:
-    warn: false
-  listen: "test_health"

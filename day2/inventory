@@ -8,5 +8,3 @@ web ansible_host=192.168.1.20 ansible_connection=ssh
 [appserver]
 app ansible_host=192.168.1.30 ansible_connection=ssh 
 
-[localhost]
-host ansible_host=127.0.0.1 ansible_connection=local

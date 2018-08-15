@@ -13,9 +13,7 @@
 
 ###
 - name: Create devops user
-  hosts:
-    - appserver
-    - webserver
+  hosts: all
   roles:
     - devops_user
 

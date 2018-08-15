@@ -8,4 +8,5 @@ jenkins_uid: 1500
 jenkins_guid: 1500
 jenkins_version: latest
 jenkins_opts: ""
-
+jenkins_gui_user_login: admin
+jenkins_gui_user_passw: admin123

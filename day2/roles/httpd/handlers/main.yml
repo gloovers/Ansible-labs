@@ -6,18 +6,3 @@
     state: restarted
   become: yes
   listen: "restart"
- 
-- name: httpd wait
-  wait_for:
-    host=localhost
-    port=80
-    delay=30
-    timeout=60
-  listen: "test_health"
-
-- name: Check if httpd Process Running
-  shell: ps -ef | grep -v grep | grep "httpd -DFOREGROUND"
-  args:
-    warn: false
-  listen: "test_health"
-

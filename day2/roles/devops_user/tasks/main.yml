@@ -7,7 +7,6 @@
     state: directory
   become: yes
 
-
 - name: Create group
   group:
     name: "{{ user_group}}"

@@ -34,7 +34,6 @@
   become: yes
   notify:
     - "restart"
-    - "test_health"
   tags:
     - never
   register: jenkins_war_reg
@@ -48,7 +47,6 @@
   become: yes
   notify:
     - "restart"
-    - "test_health"
   tags:
     - url
   register: jenkins_war_reg
@@ -61,7 +59,6 @@
   notify:
     - systemd_daemon_reload
     - "restart"
-    - "test_health"
 
 - name: create dir init.groovy.d
   file:
@@ -72,12 +69,14 @@
   become: yes
 
 - name: copy groovy script
-  copy:
-    src: "files/basic-security.groovy"
+  template:
+    src: basic-security.groovy.j2
     dest: "{{ jenkins_home }}/init.groovy.d/basic-security.groovy"
     owner: "{{ jenkins_user }}"
     group: "{{ jenkins_group }}"
   become: yes
+  notify:
+    - "restart"
  
 - name: Service is enable
   systemd:
@@ -85,8 +84,23 @@
     enabled: yes
     state: started
   become: yes
-  notify:
-    - "test_health"
+
+- name: Jenkins wait start port
+  wait_for:
+    host=localhost
+    port=8080
+    delay=30
+    timeout=60
+
+- name: Jenkins check running
+  shell: ps -eo cmd | grep -v grep | grep "jenkins"
+  args:
+    warn: false
+
+- name: Jenkins check respond code
+  shell: curl -sL -w "%{http_code}" localhost:8080/login?from=%2F -o /dev/null | grep 200
+  args:
+    warn: false
   
 - name: Wait until the file is present
   wait_for:
