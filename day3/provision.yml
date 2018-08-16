@@ -25,8 +25,21 @@
     - debug: 
         msg: "HOST: {{ inventory_hostname }} | {{ ansible_host }}"
   roles:
+    - lib
     - jenkins 
   tasks:
+    - name: check service jenkins
+      santy_test:
+        name_proc: jenkins
+        user_proc: jenkins
+        port_proc: 8080
+        url: "http://127.0.0.1:8080/login"
+        content_regexp_str: "2.121.3"
+        server_regexp_str: Jenkins
+      become: yes
+      tags:
+        - test
+        - never
     - debug: msg="Task_phase" 
   post_tasks:
     - debug: msg="Post_Task_phase"
@@ -38,12 +51,24 @@
     - debug:
         msg: "HOST: {{ inventory_hostname }} | {{ ansible_host }}"
   roles:
+    - lib
     - { role: httpd, app_ip: "{{ hostvars[groups['appserver'][0]]['ansible_host'] }}" }
   tasks:
+    - name: check service httpd
+      santy_test:
+        name_proc: httpd
+        user_proc: root
+        port_proc: 80
+        url: "127.0.0.1/login"
+        content_regexp_str: "2.121.3"
+        server_regexp_str: Jenkins
+      become: yes
+      tags:
+        - test
+        - never
     - debug: msg="Task_phase"
   post_tasks:
     - debug: msg="Post_Task_phase"
-
 - name: Details
   hosts: 
     - appserver
