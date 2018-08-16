@@ -9,10 +9,6 @@
       - { name: Test , id: 5436873 }
       - { name: DotComPlus, id: 3071538 }
       - { name: Audit , id: 8202260 }
-#    test_v: test
-#    test: "{{'test'|a_filter}}"
-#    identity_id: "{{ accounts | select_id('Identity') }}"
-  
   tasks:
     - name: test
       debug: 

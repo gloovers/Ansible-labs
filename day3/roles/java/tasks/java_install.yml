@@ -28,7 +28,7 @@
   when: java_version_reg is failed
 
 - name: Registers java/javac/jar in alternatives
-  shell:  "alternatives --install /usr/bin/java java {{java_alt_path }}/{{ java_version }}/bin/java 1"
+  shell:  "alternatives --install /usr/bin/java java {{java_alt_path }}/{{ java_version }}/bin/java 1 &&  alternatives --set java {{java_alt_path }}/{{ java_version }}/bin/java"
   become: yes
   changed_when: False
 
