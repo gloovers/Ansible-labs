@@ -1,0 +1,2 @@
+[defaults]
+filter_plugins=~/ansible/day3/filter_plugins
