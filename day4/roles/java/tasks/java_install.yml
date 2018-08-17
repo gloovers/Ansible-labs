@@ -1,0 +1,47 @@
+- name: Ensure Facts Directory Exists
+  file:
+    path: /etc/ansible/facts.d
+    recurse: yes
+    state: directory
+  become: yes
+
+- name: Create dir for java alternatives
+  file:
+    path: "{{java_alt_path }}/{{ java_version }}"
+    state: directory 
+    recurse: yes
+  become: yes
+  
+- name: Check existing of java version and copy files
+  unarchive:
+    src: "jre-{{ java_version }}-linux-x64.tar.gz"
+    dest: "{{java_alt_path }}/{{ java_version }}"
+    extra_opts: "--strip-components=1"
+  ignore_errors: yes
+  register: java_version_reg
+  become: yes
+
+- name: Fail
+  fail:
+    msg: |
+     ===  java version distribution hasn’t been found! ===
+  when: java_version_reg is failed
+
+- name: Registers java/javac/jar in alternatives
+  shell:  "alternatives --install /usr/bin/java java {{java_alt_path }}/{{ java_version }}/bin/java 1 &&  alternatives --set java {{java_alt_path }}/{{ java_version }}/bin/java"
+  become: yes
+  changed_when: False
+
+- name: Verifies java installation
+  shell: "java -version 2>&1 | grep {{ java_version }}"
+  changed_when: False 
+
+- name: Save facts about java
+  copy:
+    content: >
+      {
+        "java_version": "{{ java_version }}",
+      }
+    dest: "/etc/ansible/facts.d/java.fact"
+  become: yes
+

@@ -1,0 +1,11 @@
+---
+# tasks file for jenkins
+#
+- name: load local facts about server
+  setup:
+    filter: ansible_local
+
+- include_tasks: jenkins_install.yml
+  when: (ansible_local.jenkins_configured is not defined) or
+        (ansible_local.jenkins_configured.state != 'configured')
+

@@ -1,0 +1,15 @@
+- hosts: localhost
+  
+  vars:
+    accounts:
+      - { name: Identity , id: 8184404 }
+      - { name: Devops, id: 7948733 }
+      - { name: SPPD , id: 17897670 }
+      - { name: WCA, id: 54456450 }
+      - { name: Test , id: 5436873 }
+      - { name: DotComPlus, id: 3071538 }
+      - { name: Audit , id: 8202260 }
+  tasks:
+    - name: test
+      debug: 
+        msg: "{{ accounts | sel('Identity') }}"

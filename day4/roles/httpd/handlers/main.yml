@@ -1,0 +1,8 @@
+---
+# handlers file for httpd
+- name: httpd_restart
+  systemd:
+    name: httpd
+    state: restarted
+  become: yes
+  listen: "restart"

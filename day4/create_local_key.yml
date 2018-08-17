@@ -1,0 +1,12 @@
+- name: local actions
+  hosts: localhost
+  vars:
+    ssh_key_path: "{{ user_key }}.pem"
+    user_key: "{{ user_name }}"
+
+  tasks:
+  - name: Create ssh key for user
+    command: "ssh-keygen -t rsa -f {{ ssh_key_path }} -N''"
+    args:
+      creates: "{{ ssh_key_path }}"
+

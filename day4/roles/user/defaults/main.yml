@@ -1,0 +1,10 @@
+---
+# defaults file for devops_user
+user_name: devops
+user_group: devops
+ssh_key_pub_path: "{{ user_name }}.pem.pub"
+user_create_home: true
+user_home: "/home/{{ user_name }}"
+user_sec_groups: []
+user_gid: 2000
+user_uid: 2000

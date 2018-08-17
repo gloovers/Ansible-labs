@@ -1,0 +1,11 @@
+ProxyPass         /  http://{{ app_ip}}:8080/ nocanon
+ProxyPassReverse  /  http://{{ app_ip }}:8080/
+ProxyRequests     Off
+AllowEncodedSlashes NoDecode
+
+# Local reverse proxy authorization override
+# Most unix distribution deny proxy by default (ie /etc/apache2/mods-enabled/proxy.conf in Ubuntu)
+<Proxy http://{{ app_ip }}:8080/>
+  Order deny,allow
+  Allow from all
+</Proxy>

@@ -1,0 +1,8 @@
+---
+# defaults file for common
+#
+packages:
+  - net-tools
+  - vim
+  - tree
+  - epel-release

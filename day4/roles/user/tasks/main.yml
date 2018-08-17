@@ -1,0 +1,60 @@
+---
+# tasks file for devops_user
+- name: Ensure Facts Directory Exists
+  file:
+    path: /etc/ansible/facts.d
+    recurse: yes
+    state: directory
+  become: yes
+
+- name: Create group
+  group:
+    name: "{{ user_group}}"
+    state: present
+    gid: "{{ user_gid }}"
+  become: true
+  become_user: root
+  register: group_reg
+
+- name: Create user
+  user:
+    name: "{{ user_name }}"
+    group: "{{ user_group}}"
+    create_home: "{{ user_create_home }}"
+    home: "{{ user_home | default(omit) }}"
+    groups: "{{ user_sec_groups | default(omit) }}"
+  become: true
+  become_user: root
+  register: user_reg
+
+- name: Configure ssh access
+  authorized_key:
+    user: "{{ user_name }}"
+    state: present
+    key: '{{ item }}'
+  with_file:
+  - "{{ ssh_key_pub_path }}"
+  become: true
+  become_user: root
+
+- name: Grant all necessary system's privileges
+  template:
+    src: sudoers.j2
+    dest: "/etc/sudoers.d/{{ user_name }}"
+    validate: 'visudo -cf %s'
+    mode: 0440
+  become: true
+  become_user: root
+
+- name: Save facts of the user
+  copy:
+    content: >
+        {
+          "group_name": "{{ group_reg.name }}",
+          "group_id": "{{ group_reg.gid }}",
+          "user_name": "{{ user_reg.name }}",
+          "user_id": "{{ user_reg.uid }}",
+          "user_home": "{{ user_reg.home }}"
+        }
+    dest: "/etc/ansible/facts.d/devops_user.fact"
+  become: yes

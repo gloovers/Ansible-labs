@@ -1,0 +1,79 @@
+---
+# tasks file for httpd
+- name: Ensure Facts Directory Exists
+  file:
+    path: /etc/ansible/facts.d
+    recurse: yes
+    state: directory
+  become: yes
+
+
+- name: Install httpd
+  yum:
+    name: "{{ package_httpd }}"
+    state: latest
+  notify:
+    - "restart"
+  become: yes
+  register: installed_packages_reg
+  
+- name: configure httpd
+  template:
+    src: jenkins.conf.j2
+    dest: /etc/httpd/conf.d/jenkins.conf
+  notify:
+    - "restart"
+  become: yes
+ 
+- name: httpd enable
+  systemd:
+    name: httpd
+    enabled: yes
+    state: started
+  become: yes
+  
+- name: httpd wait
+  wait_for:
+    host=localhost
+    port=80
+    delay=10
+    timeout=60
+
+- name: Check if httpd Process Running
+  shell: ps -ef | grep -v grep | grep "httpd -DFOREGROUND"
+  args:
+    warn: false
+  changed_when: False
+
+- name: Get facts about httpd version
+  shell: "httpd -v | grep 'Server version:' | awk -F' ' '{print $3}'"
+  become: yes
+  register: httpd_ver_reg
+  changed_when: False
+
+- name: Get facts about httpd service
+  shell: "systemctl status httpd | grep 'Active:' | sed 's/Active: //'"
+  become: yes
+  register: httpd_serv_reg
+  changed_when: False
+
+- name: get date-time of installation
+  shell: "rpm -qa --queryformat '%{installtime:date} %{name}\n' {{ package_httpd }} | sed 's/{{ package_httpd }}//'"
+  register: httpd_dt_reg
+  become: yes
+  changed_when: False 
+  args:
+    warn: False
+ 
+- name: Save facts about httpd
+  copy:
+    content: >
+        {
+          "httpd_package": "{{ installed_packages_reg.results }}",
+          "httpd_date_installation": "{{ httpd_dt_reg.stdout }}",
+          "httpd_version": "{{ httpd_ver_reg.stdout }}",
+          "httpd_service": "{{ httpd_serv_reg.stdout }}"
+        }
+    dest: "/etc/ansible/facts.d/httpd.fact"
+  become: yes
+   

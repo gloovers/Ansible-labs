@@ -1,0 +1,25 @@
+- name: Install Jenkins
+  hosts:
+    - appserver
+  pre_tasks:
+    - debug:
+        msg: "HOST: {{ inventory_hostname }} | {{ ansible_host }}"
+  roles:
+    - lib
+    - jenkins
+  tasks:
+    - name: check service jenkins
+      santy_test:
+        name_proc: jenkins
+        user_proc: jenkins
+        port_proc: 8080
+        url: "http://127.0.0.1:8080/login"
+        content_regexp_str: Jenkins
+        server_regexp_str: Jenkins
+      become: yes
+      tags:
+        - test
+        - never
+    - debug: msg="Task_phase"
+  post_tasks:
+    - debug: msg="Post_Task_phase"

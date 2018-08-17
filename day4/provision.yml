@@ -1,0 +1,11 @@
+- import_playbook:  create_local_key.yml
+
+- import_playbook: create_user_devops.yml
+
+- import_playbook: jenkins_inst.yml
+
+- import_playbook: httpd_inst.yml 
+
+- import_playbook: outline.yml
+
+
