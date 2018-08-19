@@ -9,7 +9,7 @@
 
 - name: Create group
   group:
-    name: "{{ user_group}}"
+    name: "{{ user_group }}"
     state: present
     gid: "{{ user_gid }}"
   become: true
@@ -19,7 +19,7 @@
 - name: Create user
   user:
     name: "{{ user_name }}"
-    group: "{{ user_group}}"
+    group: "{{ user_group }}"
     create_home: "{{ user_create_home }}"
     home: "{{ user_home | default(omit) }}"
     groups: "{{ user_sec_groups | default(omit) }}"

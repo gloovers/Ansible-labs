@@ -1,3 +1,43 @@
+- name: Create docker containers
+  hosts: localhost
+  vars:
+    user_n: devops      
+    app_name: app
+    web_name: web
+    image: "centos:my"
+  tasks:
+    - block:
+      - name: Start containers
+        shell: "docker run -d --cap-add=SYS_ADMIN -P --name {{ item }} {{ image }}"
+        with_items:
+          - "{{ app_name }}"
+          - "{{ web_name }}"
+      - name: Get IP
+        shell: |
+          docker container inspect {{ app_name}} | jq '.[].NetworkSettings.Networks.bridge.IPAddress' | sed 's/\"//g'
+        with_items:
+          - "{{ app_name }}"
+          - "{{ web_name }}"  
+        register: ip  
+      - name: Dynamival inventory app
+        add_host:
+          name: "{{ item.item }}"
+          groups: appserver
+          ansible_connection: docker 
+          ansible_host: "{{ item.stdout }}"
+          ansible_user: "{{ user_n }}"
+          ansible_ssh_private_key_file: "./devops.pem" 
+        with_items:
+          - "{{ ip.results }}" 
+        loop_control:
+          label: "{{ item.item }}"        
+      - debug: 
+          msg: "{{ hostvars[groups['appserver'][0]] }}"
+      - debug: 
+          msg: "{{ hostvars[groups['webserver'][0]] }}"    
+
+
+
 - import_playbook:  create_local_key.yml
 
 - import_playbook: create_user_devops.yml

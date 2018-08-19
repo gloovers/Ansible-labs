@@ -1,9 +1,9 @@
 - name: local actions
   hosts: localhost
   vars:
+    user_n: devops       
     ssh_key_path: "{{ user_key }}.pem"
-    user_key: "{{ user_name }}"
-
+    user_key: "{{ user_n }}"
   tasks:
   - name: Create ssh key for user
     command: "ssh-keygen -t rsa -f {{ ssh_key_path }} -N''"

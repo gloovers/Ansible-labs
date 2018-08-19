@@ -7,7 +7,7 @@
 # you're doing.
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "sbeliakou/centos-7.5-x86_64-minimal"
+  config.vm.box = "sbeliakou/centos-7.4-x86_64-minimal"
 
   config.vm.define "webserver" do |httpd|
     httpd.vm.provider :"virtualbox" do |virt|

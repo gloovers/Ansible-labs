@@ -1,5 +1,5 @@
 - name: Create devops user
   hosts: all
-    roles:
+  roles:
     - user
 
