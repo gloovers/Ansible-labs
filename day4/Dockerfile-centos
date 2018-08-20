@@ -1,0 +1,13 @@
+FROM centos
+
+RUN yum install -y systemd openssh-server net-tools sudo && systemctl enable sshd
+
+RUN useradd vagrant && echo vagrant | passwd vagrant --stdin 
+
+RUN echo "vagrant        ALL=(ALL)       NOPASSWD: ALL" > /etc/sudoers.d/vagrant
+
+EXPOSE 22
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+ENTRYPOINT ["/usr/sbin/init"]

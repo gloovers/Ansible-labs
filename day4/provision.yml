@@ -12,6 +12,7 @@
     label: "test"
   tasks:
     - block:
+      - debug: msg={{ ansible_env['PWD'] }}
       - name: check docker containers status
         shell: "docker container inspect {{ item }}"
         with_items:
@@ -44,7 +45,7 @@
           ansible_hostname: "{{ containers.results[0].stdout_lines[0] }}"
           ansible_host: "{{ containers.results[0].stdout_lines[1] }}"
           ansible_user: "{{ user_n }}"
-          ansible_ssh_private_key_file: "./devops.pem"
+          ansible_ssh_private_key_file: "{{ ansible_env['PWD'] }}/devops.pem"
         changed_when: false
       - name: Dynamical inventory web
         add_host:
@@ -54,7 +55,7 @@
           ansible_hostname: "{{ containers.results[1].stdout_lines[0] }}"
           ansible_host: "{{ containers.results[1].stdout_lines[1] }}"
           ansible_user: "{{ user_n }}"
-          ansible_ssh_private_key_file: "./devops.pem"
+          ansible_ssh_private_key_file: "{{ ansible_env['PWD'] }}/devops.pem"
         changed_when: false
       rescue:
       - name: docker stop
@@ -63,14 +64,16 @@
           - "{{ app_name }}"
           - "{{ web_name }}"
 
-- import_playbook: create_local_key.yml
+#######################################
 
-- import_playbook: create_user_devops.yml
+- import_playbook: playbooks/create_local_key.yml
 
-- import_playbook: jenkins_inst.yml
+- import_playbook: playbooks/create_user_devops.yml
 
-- import_playbook: httpd_inst.yml 
+- import_playbook: playbooks/jenkins_inst.yml
 
-- import_playbook: outline.yml
+- import_playbook: playbooks/httpd_inst.yml 
+
+- import_playbook: playbooks/outline.yml
 
 

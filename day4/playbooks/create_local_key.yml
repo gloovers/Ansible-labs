@@ -6,7 +6,7 @@
     user_key: "{{ user_n }}"
   tasks:
   - name: Create ssh key for user
-    command: "ssh-keygen -t rsa -f {{ ssh_key_path }} -N''"
+    command: "ssh-keygen -t rsa -f {{ ssh_key_path }} -N ''"
     args:
       creates: "{{ ssh_key_path }}"
 
