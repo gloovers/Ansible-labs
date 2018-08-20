@@ -1,44 +1,69 @@
 - name: Create docker containers
   hosts: localhost
+  become: yes
+  become_user: root
   vars:
-    user_n: devops      
+    user_n: devops
     app_name: app
+    app_group_name: appserver
     web_name: web
+    web_group_name: webserver
     image: "centos:my"
+    label: "test"
   tasks:
     - block:
-      - name: Start containers
-        shell: "docker run -d --cap-add=SYS_ADMIN -P --name {{ item }} {{ image }}"
+      - name: check docker containers status
+        shell: "docker container inspect {{ item }}"
         with_items:
           - "{{ app_name }}"
           - "{{ web_name }}"
-      - name: Get IP
+      - name: Get containers info
         shell: |
-          docker container inspect {{ app_name}} | jq '.[].NetworkSettings.Networks.bridge.IPAddress' | sed 's/\"//g'
+          docker ps -q -f name={{ item }} && \
+          docker container inspect {{ item }} | jq '.[].NetworkSettings.Networks.bridge.IPAddress' | sed 's/\"//g'
         with_items:
           - "{{ app_name }}"
-          - "{{ web_name }}"  
-        register: ip  
-      - name: Dynamival inventory app
-        add_host:
-          name: "{{ item.item }}"
-          groups: appserver
-          ansible_connection: docker 
-          ansible_host: "{{ item.stdout }}"
-          ansible_user: "{{ user_n }}"
-          ansible_ssh_private_key_file: "./devops.pem" 
+          - "{{ web_name }}"
+        register: containers  
+      rescue:
+      - name: Start containers
+        shell: |
+          docker run -d --rm --cap-add=SYS_ADMIN -P -l {{ label }} --name {{ item }} {{ image }} && \
+          docker container inspect {{ item }} | jq '.[].NetworkSettings.Networks.bridge.IPAddress' | sed 's/\"//g'
         with_items:
-          - "{{ ip.results }}" 
-        loop_control:
-          label: "{{ item.item }}"        
-      - debug: 
-          msg: "{{ hostvars[groups['appserver'][0]] }}"
-      - debug: 
-          msg: "{{ hostvars[groups['webserver'][0]] }}"    
+          - "{{ app_name }}"
+          - "{{ web_name }}"
+        register: containers
 
+    - block:
+      - name: Dynamical inventory app
+        add_host:
+          name: "{{ containers.results[0].item }}"
+          groups: "{{ app_group_name }}"
+          ansible_connection: ssh
+          ansible_hostname: "{{ containers.results[0].stdout_lines[0] }}"
+          ansible_host: "{{ containers.results[0].stdout_lines[1] }}"
+          ansible_user: "{{ user_n }}"
+          ansible_ssh_private_key_file: "./devops.pem"
+        changed_when: false
+      - name: Dynamical inventory web
+        add_host:
+          name: "{{ containers.results[1].item }}"
+          groups: "{{ web_group_name }}"
+          ansible_connection: ssh
+          ansible_hostname: "{{ containers.results[1].stdout_lines[0] }}"
+          ansible_host: "{{ containers.results[1].stdout_lines[1] }}"
+          ansible_user: "{{ user_n }}"
+          ansible_ssh_private_key_file: "./devops.pem"
+        changed_when: false
+      rescue:
+      - name: docker stop
+        shell: "docker stop {{ item }}"
+        with_items:
+          - "{{ app_name }}"
+          - "{{ web_name }}"
 
-
-- import_playbook:  create_local_key.yml
+- import_playbook: create_local_key.yml
 
 - import_playbook: create_user_devops.yml
 
