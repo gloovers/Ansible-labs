@@ -15,12 +15,13 @@
     label: "test"
   tasks:
     - block:
-      - debug: msg={{ ansible_env['PWD'] }}
       - name: check docker containers status
         shell: "docker container inspect {{ item }}"
         with_items:
           - "{{ app_name }}"
           - "{{ web_name }}"
+        loop_control:
+          label: "{{ item }}"
       - name: Get containers info
         shell: |
           docker ps -q -f name={{ item }} && \

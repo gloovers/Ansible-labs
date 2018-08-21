@@ -1,0 +1,20 @@
+- name: templates create
+  hosts: localhost
+  vars:
+    servers:
+       server1:
+         path: "/var/html/"  
+         name: server1.example
+       server2:
+         path: "/var/www/html/"
+         name: server2.example
+       server3:
+         path: "/home/www/"
+         name: server3.example
+  tasks:
+    - name: create templates
+      template:
+        src: "vhost.conf.j2"
+        dest: "templates/vhosts.conf"
+#      debug: msg={{ item.value.name }}
+    - debug: msg={{ servers }}    

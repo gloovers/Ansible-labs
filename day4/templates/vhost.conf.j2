@@ -1,0 +1,9 @@
+{% for host in servers %}
+<VirtualHost *:80>
+
+    DocumentRoot "{{ servers[host].path }}"
+    ServerName {{ servers[host].name }}
+
+</VirtualHost>
+
+{%endfor%}
