@@ -5,22 +5,15 @@
     - debug:
         msg: "HOST: {{ inventory_hostname }} | {{ ansible_host }}"
   roles:
-    - lib
     - { role: httpd, app_ip: "{{ hostvars[groups['appserver'][0]]['ansible_host'] }}" }
-  tasks:
-    - name: check service httpd
-      santy_test:
-        name_proc: httpd
-        user_proc: root
-        port_proc: 80
-        url: "127.0.0.1/login"
-        content_regexp_str: Jenkins
-        server_regexp_str: Jenkins
-      become: yes
-      tags:
-        - test
-        - never
-    - debug: msg="Task_phase"
-  post_tasks:
-    - debug: msg="Post_Task_phase"
+    - role: sanity_test 
+      vars:
+        n_proc: "httpd" 
+        u_proc: "root"
+        p_proc: 80 
+        url: "http://127.0.0.1:80/login" 
+        c_r_str: "Jenkins" 
+        s_r_str: "Jenkins" 
+      tags: 
+      - sanity
 

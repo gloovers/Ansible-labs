@@ -2,8 +2,11 @@
   hosts: localhost
   become: yes
   become_user: root
+  tags:
+    - sanity
   vars:
     user_n: devops
+    path_key: "{{ ansible_env['PWD'] }}"
     app_name: app
     app_group_name: appserver
     web_name: web
@@ -37,6 +40,12 @@
         register: containers
 
     - block:
+      - name: localhost envs
+        add_host:
+          name: localhost
+          ansible_connection: local
+          ansible_ssh_private_key_file: "{{ path_key }}/{{ user_n }}.pem"
+        become: yes
       - name: Dynamical inventory app
         add_host:
           name: "{{ containers.results[0].item }}"
@@ -45,7 +54,7 @@
           ansible_hostname: "{{ containers.results[0].stdout_lines[0] }}"
           ansible_host: "{{ containers.results[0].stdout_lines[1] }}"
           ansible_user: "{{ user_n }}"
-          ansible_ssh_private_key_file: "{{ ansible_env['PWD'] }}/devops.pem"
+          ansible_ssh_private_key_file: "{{ path_key }}/{{ user_n }}.pem"
         changed_when: false
       - name: Dynamical inventory web
         add_host:
@@ -55,7 +64,7 @@
           ansible_hostname: "{{ containers.results[1].stdout_lines[0] }}"
           ansible_host: "{{ containers.results[1].stdout_lines[1] }}"
           ansible_user: "{{ user_n }}"
-          ansible_ssh_private_key_file: "{{ ansible_env['PWD'] }}/devops.pem"
+          ansible_ssh_private_key_file: "{{ path_key }}/{{ user_n }}.pem"
         changed_when: false
       rescue:
       - name: docker stop

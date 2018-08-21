@@ -1,0 +1,12 @@
+---
+# tasks file for sanity_test
+- name: check service
+  santy_test:
+    name_proc: "{{ n_proc }}"
+    user_proc: "{{ u_proc }}"
+    port_proc: "{{ p_proc }}"
+    url: "{{ url }}"
+    content_regexp_str: "{{ c_r_str }}"
+    server_regexp_str: "{{ s_r_str }}"
+  become: yes
+  
