@@ -1,0 +1,29 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "sbeliakou/centos-7.5-x86_64-minimal"
+
+  config.vm.define "master" do |master|
+    master.vm.provider :"virtualbox" do |virt|
+      virt.name = "master-kube"
+      virt.memory = "2048"
+    end
+    master.vm.hostname = "master-kube"
+    master.vm.network "private_network", ip: "192.168.1.100"
+  end
+  
+  config.vm.define "node1" do |node|
+    node.vm.provider :"virtualbox" do |virt|
+      virt.name = "node1-kube"
+      virt.memory = "1024"
+    end
+    node.vm.hostname = "node1-kube"
+    node.vm.network "private_network", ip: "192.168.1.101"
+  end
+end

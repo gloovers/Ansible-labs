@@ -1,0 +1,207 @@
+- name: install common packages and config
+  hosts: all
+  vars:
+    packages:
+      - docker-ce 
+      - net-tools 
+  tasks:
+    - name: Disable selinux
+      selinux:
+        state: disabled
+      become: yes
+ 
+    - name: Disable swap
+      shell: "swapoff -a"
+      become: yes
+
+    
+    - name: Remove swap from fstab
+      lineinfile:
+        dest: /etc/fstab
+        regexp: '(?i)^([^#][\S]+\s+(none|swap)\s+swap.*)'
+        line: '# \1'
+        backrefs: yes
+        state: present     
+      become: yes
+ 
+    - name: Add Docker repo
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docer-ce.repo
+      become: yes
+
+    - name: Enable Docker repo
+      ini_file:
+        dest: /etc/yum.repos.d/docer-ce.repo
+        section: docker-ce-edge
+        option: enabled
+        value: 1
+      become: yes
+
+    - name: install packages
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - "{{ packages }}"
+      become: yes
+
+
+    - name: create dir /etc/docker
+      file:
+        path: /etc/docker
+        state: directory
+      become: yes
+
+    - name: create file with content docker config
+      copy:
+        dest: "/etc/docker/daemon.json"
+        content: |
+          {
+          "exec-opts": [
+          "native.cgroupdriver=systemd"
+          ],
+          "storage-driver": "devicemapper"
+          } 
+      become: yes
+
+    - name: sysctl 1 
+      sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: 1
+        reload: yes
+      become: yes
+
+    - name: sysctl 2
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        reload: yes
+      become: yes
+
+      
+    - name: enable docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes 
+      become: yes
+
+    - name: Add user to docker group 
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker 
+        append: yes
+      become: yes
+
+    - name: add kube repo
+      copy:
+        dest: "/etc/yum.repos.d/kubernetes.repo"
+        content: |
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+          enabled=1
+          gpgcheck=1
+          repo_gpgcheck=1
+          gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      become: yes
+
+    - name: add kube packages
+      yum:
+        name: "{{ kube_packs }}"
+      vars:
+        kube_packs:
+          - kubelet
+          - kubeadm
+          - kubectl 
+      become: yes
+
+    - name: enable service kubelet
+      systemd:
+        name: kubelet
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      become: yes
+
+######################################3
+- name: Master activity
+  hosts: masters
+  
+  tasks:
+    - name: Reset Kubernetes component
+      shell: "kubeadm reset --force"
+      register: reset_cluster
+      become: yes
+      
+    - name: Init Kubernetes cluster
+      when: reset_cluster is succeeded
+      shell: |
+        kubeadm init \
+          --pod-network-cidr 10.244.0.0/16 \
+          --token {{ token }} \
+          --apiserver-advertise-address {{ hostvars[groups['masters'][0]].ansible_host }}
+      register: init_cluster
+      become: yes
+
+
+    - name: Change permissions of kube config
+      file: 
+        path: "{{ kubeadmin_config }}" 
+        mode: 0775
+      become: yes
+     
+    - name: Create Kubernetes config directory
+      file: 
+        path: "~/.kube/" 
+        state: directory
+
+    - name: Copy admin.conf to Home directory
+      when: init_cluster is defined
+      copy:
+        src: "{{ kubeadmin_config }}"
+        dest: "~/.kube/config"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: 0755
+        remote_src: True
+     
+    - name: Add flannel
+      shell: |
+        kubectl apply -f https://gist.githubusercontent.com/sbeliakou/6d128303674f88f60fa64e99af4f640d/raw/f3a40d416391436c7a74a9c21bd758d0c5b0664c/kube-flannel.yaml
+
+    - name: Enable and restart kubelet engine
+      systemd:
+        name: kubelet
+        daemon_reload: yes
+        state: restarted
+      enabled: yes
+      become: yes
+
+##################################################
+- name: node activity
+  hosts: nodes
+  tasks:
+    - name: Reset Kubernetes component
+      shell: "kubeadm reset --force"
+      register: reset_cluster
+      become: yes
+      
+    - name: Join to Kubernetes cluster
+      when: reset_cluster is succeeded
+      become: yes
+      shell: |
+        kubeadm join --skip-preflight-checks \
+                 --token {{ token }} \
+                 {{ hostvars[groups['masters'][0]].ansible_host }}:6443 \
+                 --discovery-token-unsafe-skip-ca-verification
+
+    - name: Enable and restart kubelet
+      systemd:
+        name: kubelet
+        daemon_reload: yes
+        state: restarted
+        enabled: yes
+      become: yes
+

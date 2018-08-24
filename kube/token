@@ -1,0 +1,1 @@
+kubeadm join 192.168.1.100:6443 --token gnvpip.74zzlhv2cmtp588m --discovery-token-ca-cert-hash sha256:663c25e280685d6b0d7009540a41f573e76905a6927d7e7cb9e1df2d097e9e6c
